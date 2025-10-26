@@ -10,6 +10,7 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 from plyer import notification
 from ai_hunter import start_threat_hunter 
+from packet_analyzer import packet_stats_history
 
 # Existing Imports 
 from ai_analyst import generate_threat_report
@@ -53,6 +54,11 @@ class FullIncident(BaseModel):
 
 class SimulationResponse(BaseModel):
     message: str
+
+class PacketStats(BaseModel):
+    timestamp: str
+    total_packets: int
+    anomalous_packets: int
 
 # Desktop Notification Function 
 def send_desktop_notification(alert: Alert):
@@ -247,6 +253,16 @@ async def get_incident_history(limit: int = 100): # Optional limit
 
     # Return the limited list
     return sorted_incidents[:limit]
+
+@app.get("/api/stats/packet_history", response_model=List[PacketStats])
+async def get_packet_stats_history():
+    """
+    Returns historical packet counts (total vs anomalous) 
+    for charting. Returns up to 'maxlen' entries.
+    """
+    # The deque stores history, oldest first if maxlen reached.
+    # Return it directly as a list.
+    return list(packet_stats_history)
 
 # Root Endpoint 
 @app.get("/")

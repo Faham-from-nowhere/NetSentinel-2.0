@@ -198,7 +198,7 @@ Use the API docs to execute POST /api/mitigate/block_ip/{ip_address} with an att
 Verify the block by executing GET /api/mitigate/blocked_ips.
 
 📂 **Project Structure (Backend)**
-'netsentinel-backend/
+``` netsentinel-backend/
 ├── venv/                   # Virtual environment
 ├── .env                    # API Keys (Gitignored)
 ├── .gitignore              # Files ignored by Git
@@ -210,7 +210,7 @@ Verify the block by executing GET /api/mitigate/blocked_ips.
 ├── netsentinel_model.joblib # Saved ML model (Gitignored)
 ├── requirements.txt        # Python dependencies
 └── README.md               # This file
-'
+```
 
 🗺️ **Future Roadmap**
 **Real Honeypot Integration**: Implement actual firewall rule changes to redirect attackers to a dedicated honeypot server (e.g., using Docker).
@@ -238,6 +238,4 @@ Google for the Gemini API
 AbuseIPDB for the Threat Intelligence feed
 
 **The open-source community for libraries like FastAPI, Scapy, Scikit-learn, Plyer.**
-
-
 
