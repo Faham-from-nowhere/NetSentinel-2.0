@@ -2,8 +2,8 @@
 
 **_Your intelligent, proactive watchdog for network security._**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) _(Placeholder)_
-[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/) _(Placeholder)_
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/) 
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Scapy](https://img.shields.io/badge/Scapy-007ACC?logo=python&logoColor=white)](https://scapy.net/)
 [![Scikit-learn](https://img.shields.io/badge/Scikit--learn-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
@@ -45,26 +45,26 @@ NetSentinel operates through a streamlined, multi-stage pipeline:
 
 ```mermaid
 graph LR
-    A[Packet Capture (Scapy)] --> B{Threat Intel Check?};
-    B -- Known Malicious IP --> G[Create Incident (Threat Intel)];
+    A[Packet Capture - Scapy] --> B{"Threat Intel Check?"};
+    B -- Known Malicious IP --> G[Create Incident - Threat Intel];
     B -- Clean / Internal --> C[Feature Extraction];
-    C --> D{ML Anomaly Detection (Isolation Forest)};
+    C --> D{"ML Anomaly Detection - Isolation Forest"};
     D -- Anomaly --> E[Correlation Engine];
     D -- Normal --> Z([Discard]);
     E -- New Incident --> F[Raw Alert Queue];
     E -- Existing Incident --> G[Update Incident DB];
     F --> H[Alert Processor];
-    H -- Enrich --> I{AI Analysis (Gemini)};
-    I --> J{AI Playbook Gen (Gemini)};
-    J --> K[Update Incident DB (AI Data)];
-    K --> L{Fan-Out};
+    H -- Enrich --> I{"AI Analysis - Gemini"};
+    I --> J{"AI Playbook Gen - Gemini"};
+    J --> K[Update Incident DB - AI Data];
+    K --> L{"Fan-Out"};
     L --> M[WebSocket Queue];
     L --> N[Desktop Notifier Queue];
-    
+
     subgraph Background Agents
-        P[AI Hunter Thread] --> Q{Packet Queue Snapshot};
-        Q --> R{AI Hunt Mission (Gemini)};
-        R --> S{Targeted Query};
+        P[AI Hunter Thread] --> Q{"Packet Queue Snapshot"};
+        Q --> R{"AI Hunt Mission - Gemini"};
+        R --> S{"Targeted Query"};
         S -- Threat Found --> G;
     end
 
@@ -73,114 +73,86 @@ graph LR
     style I fill:#fcc,stroke:#333,stroke-width:2px
     style J fill:#fcc,stroke:#333,stroke-width:2px
     style P fill:#ff9,stroke:#333,stroke-width:2px
-    ```
-Capture & Check: Live network packets are captured. External IPs are immediately checked against the AbuseIPDB threat intelligence feed. Known bad IPs trigger an instant incident.
+```
+**Capture & Check**: Live network packets are captured. External IPs are immediately checked against the AbuseIPDB threat intelligence feed. Known bad IPs trigger an instant incident.
 
-ML Detection: If IPs are clean/internal, features are extracted, and an Isolation Forest model flags statistically anomalous packets.
+**ML Detection**: If IPs are clean/internal, features are extracted, and an Isolation Forest model flags statistically anomalous packets.
 
-Correlation: Anomalous events are grouped by attacker IP into Incidents to avoid alert spam.
+**Correlation**: Anomalous events are grouped by attacker IP into Incidents to avoid alert spam.
 
-Processing & AI Enrichment: New incidents are picked up by a central processor, which uses Google Gemini to generate a summary, map to MITRE ATT&CK, and create a response playbook.
+**Processing & AI Enrichment**: New incidents are picked up by a central processor, which uses Google Gemini to generate a summary, map to MITRE ATT&CK, and create a response playbook.
 
-Fan-Out: The enriched alert is sent to both the WebSocket (for the dashboard) and the desktop notification system.
+**Fan-Out**: The enriched alert is sent to both the WebSocket (for the dashboard) and the desktop notification system.
 
-AI Hunting (Parallel): A separate AI agent periodically analyzes recent traffic patterns, hunts for behavioral threats, and creates incidents if found.
+**AI Hunting (Parallel)**: A separate AI agent periodically analyzes recent traffic patterns, hunts for behavioral threats, and creates incidents if found.
 
-🛠️ Tech Stack
+🛠️ **Tech Stack**
 Backend: Python 3.9+
-
 API Framework: FastAPI
-
 Packet Manipulation: Scapy
-
 Machine Learning: Scikit-learn (Isolation Forest), Pandas, NumPy
-
 Generative AI: Google Generative AI SDK (for Gemini)
-
 Threat Intelligence: Requests (for AbuseIPDB API)
-
 Desktop Notifications: Plyer
-
 Model Persistence: Joblib
-
 WebSockets: Built into FastAPI/Starlette
-
 Server: Uvicorn
-
 Frontend (Example): React / Dash (or any WebSocket client)
 
 
-⚙️ Getting Started / Setup
+⚙️ **Getting Started / Setup**
 Follow these steps to get NetSentinel running locally.
-
-Prerequisites
+**Prerequisites**
 Python: Version 3.9 or higher installed.
-
 pip: Python package installer.
-
 Git: Version control system.
-
 Root/Administrator Privileges: Required for Scapy to perform packet sniffing.
 
-Installation
+**Installation**
 Clone the Repository:
-
 Bash
+git clone [https://github.com/Faham-from-nowhere/NetSentinel-2.0.git](https://github.com/Faham-from-nowhere/NetSentinel-2.0.git)
 
-git clone [https://github.com/Faham-from-nowhere/NetSentinel.git](https://github.com/Faham-from-nowhere/NetSentinel.git)
 cd NetSentinel
-Create & Activate Virtual Environment:
 
+**Create & Activate Virtual Environment:**
 Bash
-
 # Windows
 python -m venv venv
 .\venv\Scripts\activate
-
 # macOS / Linux
 python3 -m venv venv
 source venv/bin/activate
-Install Dependencies:
 
+**Install Dependencies:**
 Bash
-
 pip install -r requirements.txt
 
-Set Up API Keys:
-
+**Set Up API Keys:**
 Create a file named .env in the project root directory (netsentinel-backend).
-
 Add your API keys (get them from Google AI Studio and AbuseIPDB):
-
 Ini, TOML
-
 # .env
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 ABUSEIPDB_API_KEY=YOUR_ABUSEIPDB_API_KEY_HERE
-Running the Backend
+
+**Running the Backend**
 Open your terminal with Administrator/Root privileges. This is crucial for Scapy.
-
 Navigate to the backend directory:
-
 Bash
-
 cd netsentinel-backend
 Activate the virtual environment (if not already active).
 
-Run the FastAPI server:
-
+**Run the FastAPI server:**
 Bash
-
 python main.py
 The server will start on http://localhost:8000 (or 8001 if you changed the port).
 
-First Run: It will collect TRAINING_PACKET_COUNT (default 500) packets to train the ML model and save it to netsentinel_model.joblib. This might take a minute or two.
+**First Run**: It will collect TRAINING_PACKET_COUNT (default 500) packets to train the ML model and save it to netsentinel_model.joblib. This might take a minute or two.
 
-Subsequent Runs: It will load the saved model instantly.
+**Subsequent Runs**: It will load the saved model instantly.
 
-Running the Frontend (Example - Needs Building by Person B)
-(Instructions would go here once Person B creates the frontend)
-
+**Running the Frontend**
 Navigate to the frontend directory (assuming one exists).
 
 Install frontend dependencies (e.g., npm install).
@@ -189,10 +161,9 @@ Start the frontend development server (e.g., npm start).
 
 Access the dashboard in your browser (usually http://localhost:3000).
 
-🕹️ Usage / Demo Guide
+🕹️ **Usage / Demo Guide**
 Access the Dashboard: Open your browser to the frontend URL (e.g., http://localhost:3000) or use a WebSocket test tool (like PieSocket) connected to ws://localhost:8000/ws/live.
-
-Monitor: Watch the backend terminal logs and the connected client. You'll see:
+**Monitor**: Watch the backend terminal logs and the connected client. You'll see:
 
 ML model training/loading messages.
 
@@ -200,37 +171,33 @@ Periodic analysis logs ([Analyzer] Analyzing...).
 
 AI Hunter logs ([AI Hunter] Waking up...).
 
-Trigger an Alert (Simulation):
-
+**Trigger an Alert (Simulation)**:
 Open the API docs in your browser: http://localhost:8000/docs.
 
 Scroll down to the Simulator API section.
 
-Execute POST /api/simulate/portscan or POST /api/simulate/udpflood.
-
-Observe the Response:
-
+Execute POST /api/simulate/portscan or POST /api/simulate/udpflood
+.
+**Observe the Response**:
 Terminal: You'll see the simulator start, the analyzer detect anomalies, an incident being created, the AI analysis/playbook generation, and the alert being fanned out.
 
 Desktop: A native notification should pop up.
 
 WebSocket Client/Dashboard: The alert JSON (including AI summary and MITRE mapping) will appear.
 
-View Incident Details:
-
+**View Incident Details**:
 Copy the incident_id from the alert (e.g., INC-REAL-XXXX).
 
 Use the API docs or your browser to access GET /api/incident/{incident_id} (e.g., http://localhost:8000/api/incident/INC-REAL-XXXX).
 
 Observe the full JSON, including the complete sequence (Threat Story) and the ai_playbook.
 
-Simulate Mitigation:
-
+**Simulate Mitigation**:
 Use the API docs to execute POST /api/mitigate/block_ip/{ip_address} with an attacker IP (e.g., 127.0.0.1 for simulations).
 
 Verify the block by executing GET /api/mitigate/blocked_ips.
 
-📂 Project Structure (Backend)
+📂 **Project Structure (Backend)**
 'netsentinel-backend/
 ├── venv/                   # Virtual environment
 ├── .env                    # API Keys (Gitignored)
@@ -245,28 +212,25 @@ Verify the block by executing GET /api/mitigate/blocked_ips.
 └── README.md               # This file
 '
 
-🗺️ Future Roadmap
-Real Honeypot Integration: Implement actual firewall rule changes to redirect attackers to a dedicated honeypot server (e.g., using Docker).
+🗺️ **Future Roadmap**
+**Real Honeypot Integration**: Implement actual firewall rule changes to redirect attackers to a dedicated honeypot server (e.g., using Docker).
 
-Enhanced Simulations: Add more sophisticated attack simulations (e.g., slow data exfiltration, specific malware C2 patterns).
+**Enhanced Simulations**: Add more sophisticated attack simulations (e.g., slow data exfiltration, specific malware C2 patterns).
 
-Notification Integrations: Send alerts via Slack, Discord, or Email bots.
+**Notification Integrations**: Send alerts via Slack, Discord, or Email bots.
 
-Hybrid Model Training: Ship a basic pre-trained model for instant use while the custom model trains in the background.
+**Hybrid Model Training**: Ship a basic pre-trained model for instant use while the custom model trains in the background.
 
-Frontend Dashboard: A dedicated React/Dash frontend with visualizations (network map, traffic graphs, alert dashboard).
+**Frontend Dashboard**: A dedicated React/Dash frontend with visualizations (network map, traffic graphs, alert dashboard).
 
-Configuration File: Move settings like thresholds and API endpoints to a config file.
+**Configuration File**: Move settings like thresholds and API endpoints to a config file.
 
-Database: Use a proper database (like SQLite or PostgreSQL) instead of in-memory dictionaries for persistence.
+**Database**: Use a proper database (like SQLite or PostgreSQL) instead of in-memory dictionaries for persistence.
 
-🤝 Contributing
-(Standard contribution guidelines would go here - e.g., Fork, Branch, Pull Request)
+🤝**Contributing**
+(Fork, Branch, Pull Request)
 
-📜 License
-This project is licensed under the MIT License - see the LICENSE file for details
-
-🙏 Acknowledgements
+🙏 **Acknowledgements**
 Hackathon Organizers
 
 Google for the Gemini API
@@ -274,3 +238,6 @@ Google for the Gemini API
 AbuseIPDB for the Threat Intelligence feed
 
 **The open-source community for libraries like FastAPI, Scapy, Scikit-learn, Plyer.**
+
+
+
