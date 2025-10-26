@@ -112,6 +112,7 @@ Root/Administrator Privileges: Required for Scapy to perform packet sniffing.
 Clone the Repository:
 Bash
 git clone [https://github.com/Faham-from-nowhere/NetSentinel-2.0.git](https://github.com/Faham-from-nowhere/NetSentinel-2.0.git)
+
 cd NetSentinel
 
 **Create & Activate Virtual Environment:**
@@ -153,30 +154,47 @@ The server will start on http://localhost:8000 (or 8001 if you changed the port)
 
 **Running the Frontend**
 Navigate to the frontend directory (assuming one exists).
+
 Install frontend dependencies (e.g., npm install).
+
 Start the frontend development server (e.g., npm start).
+
 Access the dashboard in your browser (usually http://localhost:3000).
 
 🕹️ **Usage / Demo Guide**
 Access the Dashboard: Open your browser to the frontend URL (e.g., http://localhost:3000) or use a WebSocket test tool (like PieSocket) connected to ws://localhost:8000/ws/live.
 **Monitor**: Watch the backend terminal logs and the connected client. You'll see:
+
 ML model training/loading messages.
+
 Periodic analysis logs ([Analyzer] Analyzing...).
+
 AI Hunter logs ([AI Hunter] Waking up...).
+
 **Trigger an Alert (Simulation)**:
 Open the API docs in your browser: http://localhost:8000/docs.
+
 Scroll down to the Simulator API section.
-Execute POST /api/simulate/portscan or POST /api/simulate/udpflood.
+
+Execute POST /api/simulate/portscan or POST /api/simulate/udpflood
+.
 **Observe the Response**:
 Terminal: You'll see the simulator start, the analyzer detect anomalies, an incident being created, the AI analysis/playbook generation, and the alert being fanned out.
+
 Desktop: A native notification should pop up.
+
 WebSocket Client/Dashboard: The alert JSON (including AI summary and MITRE mapping) will appear.
+
 **View Incident Details**:
 Copy the incident_id from the alert (e.g., INC-REAL-XXXX).
+
 Use the API docs or your browser to access GET /api/incident/{incident_id} (e.g., http://localhost:8000/api/incident/INC-REAL-XXXX).
+
 Observe the full JSON, including the complete sequence (Threat Story) and the ai_playbook.
+
 **Simulate Mitigation**:
 Use the API docs to execute POST /api/mitigate/block_ip/{ip_address} with an attacker IP (e.g., 127.0.0.1 for simulations).
+
 Verify the block by executing GET /api/mitigate/blocked_ips.
 
 📂 **Project Structure (Backend)**
@@ -196,11 +214,17 @@ Verify the block by executing GET /api/mitigate/blocked_ips.
 
 🗺️ **Future Roadmap**
 **Real Honeypot Integration**: Implement actual firewall rule changes to redirect attackers to a dedicated honeypot server (e.g., using Docker).
+
 **Enhanced Simulations**: Add more sophisticated attack simulations (e.g., slow data exfiltration, specific malware C2 patterns).
+
 **Notification Integrations**: Send alerts via Slack, Discord, or Email bots.
+
 **Hybrid Model Training**: Ship a basic pre-trained model for instant use while the custom model trains in the background.
+
 **Frontend Dashboard**: A dedicated React/Dash frontend with visualizations (network map, traffic graphs, alert dashboard).
+
 **Configuration File**: Move settings like thresholds and API endpoints to a config file.
+
 **Database**: Use a proper database (like SQLite or PostgreSQL) instead of in-memory dictionaries for persistence.
 
 🤝**Contributing**
@@ -208,8 +232,12 @@ Verify the block by executing GET /api/mitigate/blocked_ips.
 
 🙏 **Acknowledgements**
 Hackathon Organizers
+
 Google for the Gemini API
+
 AbuseIPDB for the Threat Intelligence feed
+
 **The open-source community for libraries like FastAPI, Scapy, Scikit-learn, Plyer.**
+
 
 
