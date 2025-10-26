@@ -8,11 +8,11 @@ import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
 
 export default function LandingPage() {
   const words = [
-    { text: "See",className: "!text-white" },
-    { text: "Threats",className: "!text-white" },
-    { text: "Before",className: "!text-white" },
-    { text: "They",className: "!text-white" },
-    { text: "Strike",className: "!text-white" },
+    { text: "See", className: "!text-white" },
+    { text: "Threats", className: "!text-white" },
+    { text: "Before", className: "!text-white" },
+    { text: "They", className: "!text-white" },
+    { text: "Strike", className: "!text-white" },
   ];
 
   return (
@@ -62,9 +62,11 @@ export default function LandingPage() {
           </a>
         </Link>
 
-        {/* View Demo Button */}
-        <button
-          onClick={() => alert("A 60-second Loom demo is coming soon!")}
+        {/* View Demo Button - now links to YouTube */}
+        <a
+          href="https://youtu.be/g1jmlmAgu8Q?si=oWXyMK8C9zzYbw6F"
+          target="_blank"
+          rel="noopener noreferrer"
           className="group relative px-8 py-4 rounded-xl font-bold text-white/90 transition-all duration-300 hover:scale-[1.02] active:scale-95 backdrop-blur-sm border border-white/10 hover:border-white/20"
         >
           <div className="absolute inset-0 bg-white/3 group-hover:bg-white/5 transition-colors duration-300 rounded-xl"></div>
@@ -86,7 +88,7 @@ export default function LandingPage() {
             </svg>
             View Demo
           </div>
-        </button>
+        </a>
       </div>
     </Vortex>
   );
