@@ -45,26 +45,26 @@ NetSentinel operates through a streamlined, multi-stage pipeline:
 
 ```mermaid
 graph LR
-    A[Packet Capture (Scapy)] --> B{Threat Intel Check?};
-    B -- Known Malicious IP --> G[Create Incident (Threat Intel)];
+    A[Packet Capture - Scapy] --> B{"Threat Intel Check?"};
+    B -- Known Malicious IP --> G[Create Incident - Threat Intel];
     B -- Clean / Internal --> C[Feature Extraction];
-    C --> D{ML Anomaly Detection (Isolation Forest)};
+    C --> D{"ML Anomaly Detection - Isolation Forest"};
     D -- Anomaly --> E[Correlation Engine];
     D -- Normal --> Z([Discard]);
     E -- New Incident --> F[Raw Alert Queue];
     E -- Existing Incident --> G[Update Incident DB];
     F --> H[Alert Processor];
-    H -- Enrich --> I{AI Analysis (Gemini)};
-    I --> J{AI Playbook Gen (Gemini)};
-    J --> K[Update Incident DB (AI Data)];
-    K --> L{Fan-Out};
+    H -- Enrich --> I{"AI Analysis - Gemini"};
+    I --> J{"AI Playbook Gen - Gemini"};
+    J --> K[Update Incident DB - AI Data];
+    K --> L{"Fan-Out"};
     L --> M[WebSocket Queue];
     L --> N[Desktop Notifier Queue];
-    
+
     subgraph Background Agents
-        P[AI Hunter Thread] --> Q{Packet Queue Snapshot};
-        Q --> R{AI Hunt Mission (Gemini)};
-        R --> S{Targeted Query};
+        P[AI Hunter Thread] --> Q{"Packet Queue Snapshot"};
+        Q --> R{"AI Hunt Mission - Gemini"};
+        R --> S{"Targeted Query"};
         S -- Threat Found --> G;
     end
 
@@ -73,7 +73,7 @@ graph LR
     style I fill:#fcc,stroke:#333,stroke-width:2px
     style J fill:#fcc,stroke:#333,stroke-width:2px
     style P fill:#ff9,stroke:#333,stroke-width:2px
-    ```
+```
 Capture & Check: Live network packets are captured. External IPs are immediately checked against the AbuseIPDB threat intelligence feed. Known bad IPs trigger an instant incident.
 
 ML Detection: If IPs are clean/internal, features are extracted, and an Isolation Forest model flags statistically anomalous packets.
@@ -275,3 +275,4 @@ AbuseIPDB for the Threat Intelligence feed
 
 
 **The open-source community for libraries like FastAPI, Scapy, Scikit-learn, Plyer.**
+
