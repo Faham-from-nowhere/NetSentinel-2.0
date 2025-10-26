@@ -10,7 +10,7 @@
 [![Gemini AI](https://img.shields.io/badge/Gemini_AI-4A90E2?logo=google&logoColor=white)](https://ai.google.dev/)
 
 
-**Demo-link**: [![NetSentinel]](https://youtu.be/g1jmlmAgu8Q?si=pmrf3VjLCOEvUrw6)
+**Demo-link**: [NetSentinel](https://youtu.be/g1jmlmAgu8Q?si=pmrf3VjLCOEvUrw6)
 
 
 ## 🚀 Introduction
