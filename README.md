@@ -2,8 +2,8 @@
 
 **_Your intelligent, proactive watchdog for network security._**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) _(Placeholder)_
-[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/) _(Placeholder)_
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/) 
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Scapy](https://img.shields.io/badge/Scapy-007ACC?logo=python&logoColor=white)](https://scapy.net/)
 [![Scikit-learn](https://img.shields.io/badge/Scikit--learn-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
@@ -272,5 +272,6 @@ Hackathon Organizers
 Google for the Gemini API
 
 AbuseIPDB for the Threat Intelligence feed
+
 
 **The open-source community for libraries like FastAPI, Scapy, Scikit-learn, Plyer.**
