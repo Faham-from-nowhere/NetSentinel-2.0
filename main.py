@@ -231,6 +231,23 @@ async def block_ip(ip_address: str):
 async def get_blocked_ips():
     return {"blocked_ips": sorted(list(blocked_ips_db))}
 
+@app.get("/api/incidents/history", response_model=List[FullIncident])
+async def get_incident_history(limit: int = 100): # Optional limit
+    """
+    Returns a list of recent incidents for historical charting.
+    Sorts by first_seen time.
+    """
+    print(f"[API] Frontend requested incident history (limit: {limit})...")
+    with db_lock:
+        # Get all incidents from the in-memory dictionary
+        all_incidents = list(incident_database.values())
+
+    # Sort by first_seen timestamp (most recent first)
+    sorted_incidents = sorted(all_incidents, key=lambda x: x.get('first_seen', 0), reverse=True)
+
+    # Return the limited list
+    return sorted_incidents[:limit]
+
 # Root Endpoint 
 @app.get("/")
 def read_root():

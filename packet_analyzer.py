@@ -201,11 +201,35 @@ def try_load_model():
     else:
         print("[Analyzer] No model file found. Will train a new one.")
         return False
+    
+def map_score_to_100(raw_score):
+    """
+    Maps Isolation Forest decision_function scores (negative = anomaly)
+    to a 0-100 threat score. More negative raw scores get higher threat scores.
+    This is a simple linear mapping, adjust ranges as needed.
+    """
+    # Example mapping: scores from 0 to -0.2 map to 75-100
+    # Adjust these thresholds based on observed score ranges
+    if raw_score >= 0:
+        return 50 # Normal or slightly borderline
+    elif raw_score >= -0.1: # Mild anomaly
+        # Maps -0.1 to 75, 0 to 50 linearly
+        return int(75 - (raw_score / -0.1) * 25)
+    elif raw_score >= -0.2: # Moderate anomaly
+        # Maps -0.2 to 90, -0.1 to 75 linearly
+        return int(90 - ((raw_score + 0.1) / -0.1) * 15)
+    else: # Strong anomaly
+        return 95 # Cap strong anomalies slightly below known malicious
 
-# Anomaly Detection Loop 
 def analyze_traffic():
+    """
+    Main analysis loop.
+    MODIFIED: Uses decision_function for dynamic ML scoring.
+    """
     global is_model_trained, last_analysis_time, model
+    
     print("[Analyzer] Traffic analyzer started.")
+    
     if try_load_model():
         with queue_lock: packet_queue.clear()
 
@@ -215,28 +239,43 @@ def analyze_traffic():
                 current_packets = list(packet_queue)
             
              if len(current_packets) < TRAINING_PACKET_COUNT:
-                print(f"[Analyzer] Collecting training data... {len(current_packets)}/{TRAINING_PACKET_COUNT} packets.")
-                time.sleep(2)
+                # print(f"[Analyzer] Collecting training data... {len(current_packets)}/{TRAINING_PACKET_COUNT} packets.")
+                time.sleep(1) # Check less frequently during training collection
                 continue
              else:
                 print("[Analyzer] Training Isolation Forest model...")
                 df = pd.DataFrame(current_packets)
-                features_to_train = df[['proto', 'src_port', 'dst_port', 'pkt_len']]
-                model.fit(features_to_train)
-                is_model_trained = True
-                
+                # Ensure columns exist before training (handle empty df edge case)
+                required_cols = ['proto', 'src_port', 'dst_port', 'pkt_len']
+                if not all(col in df.columns for col in required_cols) or df.empty:
+                    print("[Analyzer] Insufficient data diversity for training. Waiting for more packets.")
+                    time.sleep(5)
+                    continue
+
+                features_to_train = df[required_cols]
                 try:
+                    model.fit(features_to_train)
+                    is_model_trained = True
+
                     print(f"[Analyzer] Saving trained model to '{MODEL_FILE_PATH}'...")
                     joblib.dump(model, MODEL_FILE_PATH)
                     print("[Analyzer] Model saved.")
+                    print("[Analyzer] Model training complete. Switching to detection mode.")
+                    with queue_lock:
+                        packet_queue.clear()
+                    continue
+                except ValueError as e:
+                    print(f"[Analyzer] Error during model training: {e}. Waiting for more diverse data.")
+                    time.sleep(10) # Wait longer if training failed
+                    continue
                 except Exception as e:
-                    print(f"[Analyzer] Error saving model: {e}")
-                
-                print("[Analyzer] Model training complete. Switching to detection mode.")
-                with queue_lock:
-                    packet_queue.clear()
-                continue
+                    print(f"[Analyzer] Unexpected error during training: {e}")
+                    # Decide how to handle: exit, retry, log?
+                    time.sleep(10)
+                    continue
 
+
+        # Anomaly Detection Block 
         current_time = time.time()
         if current_time - last_analysis_time < ANALYSIS_WINDOW_SECONDS:
             time.sleep(1)
@@ -252,80 +291,111 @@ def analyze_traffic():
             continue
         
         df = pd.DataFrame(packets_to_analyze)
+        # Ensure required columns exist before prediction
+        required_cols = ['proto', 'src_port', 'dst_port', 'pkt_len']
+        if not all(col in df.columns for col in required_cols) or df.empty:
+            print("[Analyzer] Dataframe missing required columns for analysis or is empty. Skipping.")
+            continue
+
         print(f"[Analyzer] Analyzing {len(df)} packets from last ~{ANALYSIS_WINDOW_SECONDS}s...")
         
-        features_to_predict = df[['proto', 'src_port', 'dst_port', 'pkt_len']]
-        scores = model.predict(features_to_predict)
-        
-        anomaly_indices = [i for i, score in enumerate(scores) if score == -1]
-        
+        try:
+            features_to_predict = df[required_cols]
+            # Use decision_function instead of predict 
+            raw_scores = model.decision_function(features_to_predict)
+            # Find anomalies based on score < 0 
+            anomaly_indices = [i for i, score in enumerate(raw_scores) if score < 0]
+        except Exception as e:
+            print(f"[Analyzer] Error during prediction: {e}")
+            continue # Skip this analysis window if prediction fails
+
         if anomaly_indices:
-            print(f"[Analyzer] !!! Found {len(anomaly_indices)} ML anomalous packets !!!") # Clarified ML
+            print(f"[Analyzer] !!! Found {len(anomaly_indices)} ML anomalous packets !!!")
+            
             for index in anomaly_indices:
                 anomaly_packet = packets_to_analyze[index]
                 attacker_ip = anomaly_packet['src_ip']
+                # Get the specific raw score for this packet 
+                packet_raw_score = raw_scores[index]
+                # Map raw score to 0-100 
+                dynamic_threat_score = map_score_to_100(packet_raw_score)
+                
                 event_data = {
                     "timestamp": datetime.fromtimestamp(anomaly_packet['timestamp']).isoformat(),
-                    "type": "ML Anomalous Packet", # Clarified ML
+                    "type": f"ML Anomalous Packet (Raw Score: {packet_raw_score:.3f})", # Include raw score
                     "details": f"Packet from {attacker_ip}:{anomaly_packet['src_port']} to {anomaly_packet['dst_ip']}:{anomaly_packet['dst_port']} (Proto: {anomaly_packet['proto']}, Size: {anomaly_packet['pkt_len']})"
                 }
+                
                 with ip_lookup_lock, db_lock:
                     if attacker_ip in active_ip_to_incident:
                         incident_id, last_seen = active_ip_to_incident[attacker_ip]
                         if time.time() - last_seen < INCIDENT_COOLDOWN_SECONDS:
                             print(f"[Analyzer] Correlating ML event with existing incident {incident_id}")
                             incident_database[incident_id]['sequence'].append(event_data)
-                            incident_database[incident_id]['threat_score'] = min(100, incident_database[incident_id]['threat_score'] + 5)
+                            # Update score based on dynamic value 
+                            # Increase existing score slightly, but ensure it doesn't decrease
+                            # Cap increase based on new event score, but don't exceed 100
+                            current_score = incident_database[incident_id]['threat_score']
+                            increase_amount = max(0, (dynamic_threat_score - current_score) // 4) # Smaller increase for correlated events
+                            new_score = min(100, current_score + increase_amount + 2 ) # Add a minimum small bump (+2)
+                            incident_database[incident_id]['threat_score'] = new_score
+                            # End Score Update 
                             incident_database[incident_id]['last_seen'] = time.time()
                             active_ip_to_incident[attacker_ip] = (incident_id, time.time())
                         else:
                             print(f"[Analyzer] Cooldown expired for {attacker_ip}. Creating new ML incident.")
-                            create_new_incident(attacker_ip, event_data) # Default score 90
+                            # Pass dynamic score
+                            create_new_incident(attacker_ip, event_data, override_score=dynamic_threat_score)
                     else:
                         print(f"[Analyzer] New attacker IP {attacker_ip}. Creating new ML incident.")
-                        create_new_incident(attacker_ip, event_data) # Default score 90
+                        # Pass dynamic score
+                        create_new_incident(attacker_ip, event_data, override_score=dynamic_threat_score)
 
-# Incident Creation 
-def create_new_incident(attacker_ip, first_event, override_score=90, main_event="ML Anomaly Detected"):
+
+# Incident Creation
+# Removed the default score here, relying on override_score
+def create_new_incident(attacker_ip, first_event, override_score, main_event="ML Anomaly Detected"):
     """
     Handles the logic for creating a new incident entry.
-    MODIFIED: Added override_score and main_event parameters.
+    MODIFIED: override_score is now mandatory.
     """
     incident_id = f"INC-REAL-{random.randint(1000, 9999)}"
     current_time = time.time()
-    
+
+    # Ensure score is within bounds
+    final_score = max(0, min(100, int(override_score)))
+
     new_incident = {
         "incident_id": incident_id,
-        "threat_score": override_score, # Use override or default
-        "main_event": main_event,       # Use override or default
+        "threat_score": final_score, # Use the provided score
+        "main_event": main_event,
         "status": "new",
         "first_seen": current_time,
         "last_seen": current_time,
         "attacker_ip": attacker_ip,
         "sequence": [first_event]
     }
-    
-    # Check if incident ID already exists (rare collision)
+
     if incident_id in incident_database:
         print(f"[Analyzer] Incident ID collision! Regenerating for {attacker_ip}")
-        create_new_incident(attacker_ip, first_event, override_score, main_event) # Recurse
+        # Need to re-pass score and event type on recursion
+        create_new_incident(attacker_ip, first_event, override_score=final_score, main_event=main_event)
         return
 
-    print(f"[Analyzer] Creating new incident {incident_id} for IP {attacker_ip} (Event: {main_event})")
+    print(f"[Analyzer] Creating new incident {incident_id} for IP {attacker_ip} (Event: {main_event}, Score: {final_score})")
     incident_database[incident_id] = new_incident
     active_ip_to_incident[attacker_ip] = (incident_id, current_time)
-    
+
     initial_alert_data = {
         "incident_id": incident_id,
         "threat_score": new_incident['threat_score'],
         "main_event": new_incident['main_event'],
         "status": new_incident['status'],
         "sequence": [first_event],
-        "attacker_ip": attacker_ip # Pass attacker IP for AI context
+        "attacker_ip": attacker_ip
     }
-    
-    anomaly_alerts_queue.append(initial_alert_data)
 
+    anomaly_alerts_queue.append(initial_alert_data)
 
 def start_analysis_loop():
     t = Thread(target=analyze_traffic, daemon=True)
